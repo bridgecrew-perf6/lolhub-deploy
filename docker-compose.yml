@@ -1,0 +1,80 @@
+# Use root/example as user/password credentials
+version: '3.3'
+
+services:
+  mongo:
+    image: mongo
+    restart: always
+    ports:
+      - "27018:27017"
+    volumes:
+      - "apidb:/data/db"
+      - "apidbinit:/docker-entrypoint-init.d/init-mongo.js:ro"
+    environment:
+      MONGO_INITDB_DATABASE: ${prodlolhub}
+      MONGO_INITDB_ROOT_USERNAME: ${prodlolhub_RPROD}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_MONGO_PRODLOLHUB_RPROD}
+    networks:
+      - mynetwork
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    depends_on:
+      - mongo
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${prodlolhub_RPROD}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${DB_MONGO_PRODLOLHUB_RPROD}
+      ME_CONFIG_MONGODB_URL: mongodb://${prodlolhub_RPROD}:${DB_MONGO_PRODLOLHUB_RPROD}@mongo:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: ${prodlolhub_RPROD}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${DB_MONGO_PRODLOLHUB_RPROD}
+      ME_CONFIG_SITE_BASEURL: /db
+    networks:
+      - mynetwork
+
+  api:
+    image: api
+    restart: always
+    depends_on:
+      - mongo
+    ports:
+      - "8083:8083"
+    environment:
+      SCOPE: ${SCOPE}
+      SECRET_APPLICATION_ID: ${SECRET_APPLICATION_ID}
+      prodlolhub_RPROD: ${prodlolhub_RPROD}
+      DB_MONGO_PRODLOLHUB_RPROD: ${DB_MONGO_PRODLOLHUB_RPROD}
+      DB_MONGO_PRODLOLHUB_ENDPOINT: mongo
+      prodlolhub: ${prodlolhub}
+      DB_MONGO_PRODLOLHUB_PORT: 27017
+      GAME_VERSION: ${GAME_VERSION}
+      OPERATOR: ${OPERATOR}
+      RIOT_TOKEN: ${RIOT_TOKEN}
+    networks:
+      - mynetwork
+
+  front:
+    image: ghcr.io/bdesimone98/lolhub-fe/front:latest
+    restart: always
+    depends_on:
+      - api
+    ports:
+      - "3000:3000"
+    environment:
+      BACKEND_HOST: ${BACKEND_HOST}
+      BACKEND_PATH: ${BACKEND_PATH}
+      AUTH_TOKEN: ${AUTH_TOKEN}
+      NEXT_PUBLIC_ADSENSE_CLIENT: ${NEXT_PUBLIC_ADSENSE_CLIENT}
+      MY_SECRET_TOKEN: ${MY_SECRET_TOKEN}
+    networks:
+      - mynetwork
+volumes:
+  apidb:
+
+  apidbinit:
+
+networks:
+  mynetwork:
+    driver: bridge
