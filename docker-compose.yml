@@ -35,7 +35,7 @@ services:
       - mynetwork
 
   api:
-    image: api
+    image: ghcr.io/bdesimone98/lolhub/back:latest
     restart: always
     depends_on:
       - mongo
@@ -55,21 +55,6 @@ services:
     networks:
       - mynetwork
 
-  front:
-    image: ghcr.io/bdesimone98/lolhub-fe/front:latest
-    restart: always
-    depends_on:
-      - api
-    ports:
-      - "3000:3000"
-    environment:
-      BACKEND_HOST: ${BACKEND_HOST}
-      BACKEND_PATH: ${BACKEND_PATH}
-      AUTH_TOKEN: ${AUTH_TOKEN}
-      NEXT_PUBLIC_ADSENSE_CLIENT: ${NEXT_PUBLIC_ADSENSE_CLIENT}
-      MY_SECRET_TOKEN: ${MY_SECRET_TOKEN}
-    networks:
-      - mynetwork
 volumes:
   apidb:
 
